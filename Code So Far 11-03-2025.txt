@@ -1,0 +1,40 @@
+#! /bin/bash
+PSQL="psql -X --username=freecodecamp --dbname=periodic_table --tuples-only -c"
+
+INPUT=$1
+
+if [[ $INPUT =~ ^[A-Za-z]{1,2}$ ]]; then
+SYMBOL=$($PSQL "SELECT * FROM elements WHERE symbol = '$INPUT'")
+elif [[ $INPUT =~ ^[a-zA-Z]{3,}$ ]]; then
+NAME=$($PSQL "SELECT * FROM elements WHERE name = '$INPUT'")
+elif [[ $INPUT =~ ^[0-9]+$ ]];
+then
+ATOMIC_NUMBER=$($PSQL "SELECT * FROM elements WHERE atomic_number = '$1'")
+fi
+
+if [[ -z $INPUT ]];
+then
+echo "Please provide an element as an argument."
+elif [[ -z $SYMBOL ]] && [[ -z $NAME ]] && [[ -z $ATOMIC_NUMBER ]];
+then
+echo "I could not find that element in the database."
+elif [[ $INPUT =~ ^[A-Za-z]{1,2}$ ]]; then
+echo $($PSQL "SELECT * FROM elements FULL JOIN properties ON elements.atomic_number = properties.atomic_number FULL JOIN types ON properties.type_id = types.type_id
+WHERE symbol = '$INPUT'") | while read ATOMIC_NUMBER BAR SYMBOL BAR NAME BAR ATOMIC_NUMBER BAR ATOMIC_MASS BAR MELTING_POINT_CELSIUS BAR BOILING_POINT_CELSIUS BAR TYPE_ID BAR TYPE_ID BAR TYPE
+do
+echo "The element with atomic number $ATOMIC_NUMBER is $NAME ($SYMBOL). It's a $TYPE, with a mass of $ATOMIC_MASS amu. $NAME has a melting point of $MELTING_POINT_CELSIUS celsius and a boiling point of $BOILING_POINT_CELSIUS celsius."
+done
+elif [[ $INPUT =~ ^[a-zA-Z]{3,}$ ]]; then
+echo $($PSQL "SELECT * FROM elements FULL JOIN properties ON elements.atomic_number = properties.atomic_number FULL JOIN types ON properties.type_id = types.type_id
+WHERE name = '$INPUT'") | while read ATOMIC_NUMBER BAR SYMBOL BAR NAME BAR ATOMIC_NUMBER BAR ATOMIC_MASS BAR MELTING_POINT_CELSIUS BAR BOILING_POINT_CELSIUS BAR TYPE_ID BAR TYPE_ID BAR TYPE
+do
+echo "The element with atomic number $ATOMIC_NUMBER is $NAME ($SYMBOL). It's a $TYPE, with a mass of $ATOMIC_MASS amu. $NAME has a melting point of $MELTING_POINT_CELSIUS celsius and a boiling point of $BOILING_POINT_CELSIUS celsius."
+done
+elif [[ $INPUT =~ ^[0-9]+$ ]];
+then
+echo $($PSQL "SELECT * FROM elements FULL JOIN properties ON elements.atomic_number = properties.atomic_number FULL JOIN types ON properties.type_id = types.type_id
+WHERE elements.atomic_number = '$1'") | while read ATOMIC_NUMBER BAR SYMBOL BAR NAME BAR ATOMIC_NUMBER BAR ATOMIC_MASS BAR MELTING_POINT_CELSIUS BAR BOILING_POINT_CELSIUS BAR TYPE_ID BAR TYPE_ID BAR TYPE
+do
+echo "The element with atomic number $ATOMIC_NUMBER is $NAME ($SYMBOL). It's a $TYPE, with a mass of $ATOMIC_MASS amu. $NAME has a melting point of $MELTING_POINT_CELSIUS celsius and a boiling point of $BOILING_POINT_CELSIUS celsius."
+done
+fi
